@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>佳乐本地生活 - 项目下载</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+        h1 {
+            color: #1a202c;
+            margin-bottom: 16px;
+            font-size: 28px;
+        }
+        .subtitle {
+            color: #718096;
+            margin-bottom: 32px;
+            font-size: 16px;
+        }
+        .file-info {
+            background: #f7fafc;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        .file-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 8px;
+        }
+        .file-size {
+            color: #718096;
+            font-size: 14px;
+        }
+        .download-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            padding: 16px 48px;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.5);
+        }
+        .download-btn:active {
+            transform: translateY(0);
+        }
+        .steps {
+            margin-top: 32px;
+            text-align: left;
+            background: #f7fafc;
+            border-radius: 12px;
+            padding: 24px;
+        }
+        .steps h3 {
+            color: #2d3748;
+            margin-bottom: 16px;
+            font-size: 16px;
+        }
+        .steps ol {
+            padding-left: 20px;
+            color: #4a5568;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+        .steps li {
+            margin-bottom: 8px;
+        }
+        .note {
+            margin-top: 24px;
+            padding: 16px;
+            background: #fffaf0;
+            border-left: 4px solid #ed8936;
+            border-radius: 8px;
+            text-align: left;
+            font-size: 14px;
+            color: #744210;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📦 佳乐本地生活</h1>
+        <p class="subtitle">项目文件下载</p>
+        
+        <div class="file-info">
+            <div class="file-name">jiale-local-life.tar.gz</div>
+            <div class="file-size">大小：29 MB | 格式：压缩包</div>
+        </div>
+        
+        <a href="/downloads/jiale-local-life.tar.gz" class="download-btn" download>
+            ⬇️ 立即下载
+        </a>
+        
+        <div class="steps">
+            <h3> 部署步骤</h3>
+            <ol>
+                <li>解压下载的文件到任意目录</li>
+                <li>安装 Node.js 24（从 nodejs.org 下载）</li>
+                <li>双击「一键部署-Windows.bat」</li>
+                <li>配置 .env.production（Supabase 连接信息）</li>
+                <li>双击桌面「启动佳乐本地生活.bat」</li>
+            </ol>
+        </div>
+        
+        <div class="note">
+            <strong> 提示：</strong>首次部署需要配置 Supabase 数据库连接信息。详见项目中的 COMPUTER_DEPLOY.md 文档。
+        </div>
+    </div>
+</body>
+</html>

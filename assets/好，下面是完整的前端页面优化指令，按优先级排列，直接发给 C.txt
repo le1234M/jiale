@@ -1,0 +1,719 @@
+好，下面是完整的前端页面优化指令，按优先级排列，直接发给 Coze 沙盘编程AI执行。
+
+指令6：输出类型卡片增加推荐标签和场景提示
+
+找到 OUTPUT_TYPES 数组（或输出类型卡片的渲染逻辑），修改为：
+
+jsx
+1
+2
+3
+4
+5
+6
+7
+8
+9
+const OUTPUT_TYPES = [
+  { id: 'script', label: '短视频脚本（含分镜）', desc: '30-60秒，黄金3秒钩子+分镜画面+口播文案+字幕+BGM推荐+POI', badge: '最常用', tip: '适合日常拍摄，包含完整分镜和口播' },
+  { id: 'talking', label: '口播/真人讲话文案', desc: '开场钩子+核心话术+转化引导+互动收尾', badge: '最简单', tip: '适合老板/员工直接对着镜头说' },
+  { id: 'vlog', label: '探店Vlog脚本', desc: '进店→体验→高潮→转化完整动线', badge: '种草首选', tip: '适合展示门店环境和服务体验' },
+  { id: 'livestream', label: '直播话术脚本', desc: '开场留人+产品讲解+逼单+循环+应急话术', badge: '', tip: '适合做直播带货/团购促销' },
+  { id: 'interaction', label: '互动转化话术包', desc: '评论区20条+私信10条+异议处理', badge: '', tip: '配合其他类型使用，提升评论区转化' },
+  { id: 'calendar', label: '月度选题规划', desc: '30天内容日历+选题+类型+发布时间+标签', badge: '', tip: '一次性规划30天内容，省心省力' },
+]
+
+在渲染每张输出类型卡片的 JSX 中，做以下修改：
+
+如果 item.badge 有值，在卡片右上角显示一个金色角标：
+
+jsx
+1
+2
+3
+4
+5
+6
+7
+{item.badge && (
+  <span className="absolute top-2 right-2 px-2 py-0.5 text-[10px] font-bold rounded-full"
+        style={{ backgroundColor: 'rgba(212,175,106,0.2)', color: '#D4AF6A', border: '1px solid rgba(212,175,106,0.3)' }}>
+    {item.badge}
+  </span>
+)}
+
+在卡片的 desc 下方，增加一行 tip 提示文字：
+
+jsx
+1
+2
+3
+4
+{item.tip && (
+  <p className="text-[11px] text-white/35 mt-1 leading-tight">💡 {item.tip}</p>
+)}
+
+确保卡片容器有 relative 定位（用于角标定位）。
+
+指令7：生成等待时轮播焦总提示
+
+找到生成按钮点击后的 loading 状态（通常是 isLoading 或 isGenerating 状态），在输出区域（右侧）的 loading 显示部分做以下修改：
+
+7.1 添加提示文案数组
+
+在组件内部定义：
+
+jsx
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+const JIAO_TIPS = [
+  { icon: '🎬', text: '焦总正在给你写脚本...' },
+  { icon: '💡', text: '前3秒的钩子决定了80%的播放量' },
+  { icon: '🎯', text: '发布后30分钟内回复所有评论，权重加倍' },
+  { icon: '📍', text: '别忘了挂载POI地址，本地流量全靠它' },
+  { icon: '🔥', text: '同一家店可以换不同钩子拍10条视频' },
+  { icon: '📊', text: '5000本地播放 > 10万外地播放，精准比爆更重要' },
+  { icon: '⏰', text: '午休12点和晚上9点，是本地生活流量高峰' },
+  { icon: '💬', text: '评论区留一条引导评论并置顶，互动率翻倍' },
+]
+
+7.2 添加轮播 state 和逻辑
+
+jsx
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+const [tipIndex, setTipIndex] = useState(0)
+// 在 isLoading 变为 true 时启动轮播，变为 false 时清除
+useEffect(() => {
+  if (!isLoading) return
+  const timer = setInterval(() => {
+    setTipIndex(prev => (prev + 1) % JIAO_TIPS.length)
+  }, 3000)
+  return () => clearInterval(timer)
+}, [isLoading])
+
+7.3 修改 loading 状态的 UI
+
+在输出区域（右侧），当 isLoading && !outputContent 时，显示：
+
+jsx
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+{isLoading && !outputContent && (
+  <div className="card-luxe p-8 flex flex-col items-center justify-center min-h-[300px]">
+    {/* 动画圈 */}
+    <div className="relative w-16 h-16 mb-6">
+      <div className="absolute inset-0 rounded-full border-2 border-transparent animate-spin"
+           style={{ borderTopColor: '#D4AF6A', borderRightColor: 'rgba(212,175,106,0.3)' }} />
+      <div className="absolute inset-2 rounded-full border-2 border-transparent animate-spin"
+           style={{ borderBottomColor: '#D4AF6A', borderLeftColor: 'rgba(212,175,106,0.3)', animationDirection: 'reverse', animationDuration: '1.5s' }} />
+      <span className="absolute inset-0 flex items-center justify-center text-xl">🎬</span>
+    </div>
+    
+    {/* 轮播提示文字 - 带淡入效果 */}
+    <p className="text-white/70 text-sm text-center font-medium mb-1">
+      {JIAO_TIPS[tipIndex].icon} {JIAO_TIPS[tipIndex].text}
+    </p>
+    <p className="text-white/30 text-xs">
+      预计需要 10-20 秒，请稍候...
+    </p>
+    
+    {/* 进度点 */}
+    <div className="flex gap-1.5 mt-4">
+      {[0,1,2].map(i => (
+        <div key={i} className="w-1.5 h-1.5 rounded-full animate-pulse"
+             style={{ backgroundColor: '#D4AF6A', animationDelay: `${i * 0.3}s` }} />
+      ))}
+    </div>
+  </div>
+)}
+
+指令8：使用次数改为进度条展示
+
+找到头部显示使用次数的区域（类似"本月使用次数 20/60"的地方），替换为：
+
+jsx
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+{/* 使用量进度条 */}
+<div className="flex items-center gap-3">
+  <span className="text-xs text-white/50">本月额度</span>
+  <div className="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden min-w-[80px]">
+    <div 
+      className="h-full rounded-full transition-all duration-500"
+      style={{ 
+        width: `${Math.min((usedCount / maxCount) * 100, 100)}%`,
+        backgroundColor: usedCount / maxCount > 0.8 ? '#ef4444' : '#D4AF6A'
+      }} 
+    />
+  </div>
+  <span className="text-xs font-mono" style={{ color: usedCount / maxCount > 0.8 ? '#ef4444' : '#D4AF6A' }}>
+    {usedCount}/{maxCount}
+  </span>
+</div>
+{/* 超过80%时提示 */}
+{usedCount / maxCount > 0.8 && (
+  <p className="text-[10px] text-amber-400/80 mt-0.5 text-right">
+    额度即将用完，下月1号刷新
+  </p>
+)}
+
+其中 usedCount 和 maxCount 替换为你现有的使用次数和总额度变量。
+
+指令9：抖音团购信息区域逻辑清晰化
+
+找到抖音链接/截图上传的区域，重构为以下结构：
+
+jsx
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+<div className="card-luxe p-5">
+  {/* 标题 */}
+  <h3 className="divider-gold mb-3">抖音团购信息</h3>
+  <p className="text-[11px] text-white/35 mb-4">以下两种方式任选其一，也可以都不填，直接手动填写套餐信息</p>
+  
+  {/* 方式一：链接 */}
+  <label className="block text-xs text-white/50 mb-1.5">方式一：粘贴抖音链接</label>
+  <input 
+    className="input-luxe w-full mb-1"
+    placeholder="如：https://v.douyin.com/xxx"
+    value={douyinLink}
+    onChange={e => setDouyinLink(e.target.value)}
+  />
+  {douyinLink && (
+    <button onClick={handleRecognizeLink} className="text-[11px] text-amber-400/70 hover:text-amber-400 mb-3">
+      🔍 识别链接中的套餐信息
+    </button>
+  )}
+  
+  {/* 分隔 */}
+  <div className="flex items-center gap-3 my-3">
+    <div className="flex-1 h-px bg-white/10" />
+    <span className="text-[10px] text-white/25">或</span>
+    <div className="flex-1 h-px bg-white/10" />
+  </div>
+  
+  {/* 方式二：截图 */}
+  <label className="block text-xs text-white/50 mb-1.5">方式二：上传套餐截图</label>
+  <div className="border border-dashed border-white/15 rounded-lg p-4 text-center cursor-pointer hover:border-white/25 transition-colors"
+       onClick={() => document.getElementById('screenshot-upload').click()}>
+    {screenshot ? (
+      <div className="flex items-center gap-2 justify-center">
+        <span className="text-green-400 text-xs">✓ 已上传</span>
+        <span className="text-[11px] text-white/40">{screenshot.name}</span>
+        <button onClick={e => { e.stopPropagation(); setScreenshot(null) }} className="text-red-400/60 text-xs hover:text-red-400">删除</button>
+      </div>
+    ) : (
+      <div>
+        <p className="text-white/30 text-xs">点击上传或拖拽图片到这里</p>
+        <p className="text-white/20 text-[10px] mt-1">支持 JPG/PNG</p>
+      </div>
+    )}
+    <input id="screenshot-upload" type="file" accept="image/*" className="hidden" onChange={handleScreenshotUpload} />
+  </div>
+  
+  {/* 手动填写区域 */}
+  <div className="mt-4 pt-4" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+    <p className="text-[11px] text-white/35 mb-3">手动填写套餐信息（有链接时可自动识别，也可手动修改）</p>
+    
+    <label className="block text-xs text-white/50 mb-1.5">套餐名称</label>
+    <input className="input-luxe w-full mb-3" placeholder="如：双人火锅套餐" value={packageName} onChange={e => setPackageName(e.target.value)} />
+    
+    <div className="grid grid-cols-2 gap-3 mb-3">
+      <div>
+        <label className="block text-xs text-white/50 mb-1.5">原价（元）</label>
+        <input className="input-luxe w-full" placeholder="如：198" value={originalPrice} onChange={e => setOriginalPrice(e.target.value)} />
+      </div>
+      <div>
+        <label className="block text-xs text-white/50 mb-1.5">团购价（元）</label>
+        <input className="input-luxe w-full" placeholder="如：99" value={groupPrice} onChange={e => setGroupPrice(e.target.value)} />
+      </div>
+    </div>
+    
+    <label className="block text-xs text-white/50 mb-1.5">套餐包含项</label>
+    <textarea className="input-luxe w-full resize-none" rows={2} placeholder="如：锅底×1、精品肥牛×2、蔬菜拼盘×1、甜品×2" value={packageItems} onChange={e => setPackageItems(e.target.value)} />
+  </div>
+</div>
+
+指令10：输出区域增加「复制全部」按钮 + 空状态引导
+
+10.1 复制全部按钮
+
+在输出区域（右侧）的顶部 tab 栏旁边，增加一个「复制全部」按钮：
+
+jsx
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+{outputContent && (
+  <button 
+    onClick={() => {
+      // 拼接所有输出内容
+      const allText = outputSections.map(s => s.content).join('\n\n---\n\n')
+      navigator.clipboard.writeText(allText)
+      // 显示复制成功提示（2秒后消失）
+      setCopyAllTip(true)
+      setTimeout(() => setCopyAllTip(false), 2000)
+    }}
+    className="px-3 py-1 text-[11px] rounded-md transition-all hover:scale-105"
+    style={{ backgroundColor: 'rgba(212,175,106,0.15)', color: '#D4AF6A', border: '1px solid rgba(212,175,106,0.2)' }}
+  >
+    {copyAllTip ? '✓ 已复制' : '📋 复制全部'}
+  </button>
+)}
+
+需要在 state 中添加：const [copyAllTip, setCopyAllTip] = useState(false)
+
+10.2 空状态引导
+
+当输出区域没有任何内容且不在 loading 状态时，显示引导：
+
+jsx
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+{!outputContent && !isLoading && (
+  <div className="card-luxe p-8 flex flex-col items-center justify-center min-h-[300px] text-center">
+    <span className="text-4xl mb-4">🎬</span>
+    <p className="text-white/50 text-sm font-medium mb-2">焦总在这里等你</p>
+    <p className="text-white/30 text-xs leading-relaxed max-w-[240px]">
+      在左侧填好门店信息，点击「开始生成」<br/>
+      焦总帮你写一条能直接拍的脚本
+    </p>
+    
+    {/* 简化流程示意 */}
+    <div className="flex items-center gap-2 mt-6">
+      {['填信息', '选类型', '生成文案'].map((step, i) => (
+        <div key={step} className="flex items-center gap-2">
+          <div className="flex flex-col items-center">
+            <div className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold"
+                 style={{ backgroundColor: 'rgba(212,175,106,0.15)', color: '#D4AF6A' }}>
+              {i + 1}
+            </div>
+            <span className="text-[10px] text-white/30 mt-1">{step}</span>
+          </div>
+          {i < 2 && <span className="text-white/15 text-xs mb-4">→</span>}
+        </div>
+      ))}
+    </div>
+  </div>
+)}
+
+指令11：历史记录功能（localStorage）
+
+11.1 添加 state 和工具函数
+
+jsx
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+// 历史记录 state
+const [history, setHistory] = useState([])
+const [showHistory, setShowHistory] = useState(false)
+// 页面加载时读取
+useEffect(() => {
+  try {
+    const saved = localStorage.getItem('jiaolo_copy_history')
+    if (saved) setHistory(JSON.parse(saved))
+  } catch(e) {}
+}, [])
+// 保存记录函数
+const saveToHistory = (data) => {
+  const record = {
+    id: Date.now(),
+    time: new Date().toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }),
+    storeName: data.storeName || '未命名',
+    outputTypes: data.outputTypes || [],
+    content: data.content || '',
+  }
+  const newHistory = [record, ...history].slice(0, 10) // 最多保留10条
+  setHistory(newHistory)
+  localStorage.setItem('jiaolo_copy_history', JSON.stringify(newHistory))
+}
+// 删除记录
+const deleteHistory = (id) => {
+  const newHistory = history.filter(h => h.id !== id)
+  setHistory(newHistory)
+  localStorage.setItem('jiaolo_copy_history', JSON.stringify(newHistory))
+}
+
+11.2 在生成完成后保存
+
+在 handleGenerate 函数中，流式输出完成后，调用：
+
+jsx
+1
+2
+3
+4
+5
+6
+saveToHistory({
+  storeName: storeName,
+  outputTypes: selectedOutputTypes.map(id => OUTPUT_TYPES.find(t => t.id === id)?.label),
+  content: finalOutputContent,
+})
+
+11.3 历史记录 UI
+
+在头部区域（品牌标题右侧或下方）添加一个历史记录入口：
+
+jsx
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+<button 
+  onClick={() => setShowHistory(!showHistory)}
+  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs transition-all hover:scale-105"
+  style={{ backgroundColor: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.5)', border: '1px solid rgba(255,255,255,0.08)' }}
+>
+  📋 历史记录 {history.length > 0 && (
+    <span className="px-1.5 py-0.5 rounded-full text-[9px]" style={{ backgroundColor: 'rgba(212,175,106,0.2)', color: '#D4AF6A' }}>
+      {history.length}
+    </span>
+  )}
+</button>
+
+11.4 历史记录面板
+
+在页面中（可以是 modal 或侧边抽屉）展示历史列表：
+
+jsx
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+{showHistory && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}>
+    <div className="w-full max-w-lg max-h-[70vh] rounded-2xl p-6 overflow-auto"
+         style={{ backgroundColor: '#0f1d35', border: '1px solid rgba(212,175,106,0.15)' }}>
+      
+      {/* 标题栏 */}
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-white/80 text-sm font-bold">📋 生成历史</h3>
+        <button onClick={() => setShowHistory(false)} className="text-white/30 hover:text-white/60 text-lg">✕</button>
+      </div>
+      
+      {history.length === 0 ? (
+        <p className="text-white/30 text-xs text-center py-8">暂无历史记录</p>
+      ) : (
+        <div className="space-y-2">
+          {history.map(record => (
+            <div key={record.id} className="p-3 rounded-lg cursor-pointer transition-all hover:bg-white/5"
+                 style={{ backgroundColor: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-white/70 text-xs font-medium">{record.storeName}</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-white/25 text-[10px]">{record.time}</span>
+                  <button 
+                    onClick={e => { e.stopPropagation(); navigator.clipboard.writeText(record.content); }}
+                    className="text-[10px] px-2 py-0.5 rounded"
+                    style={{ backgroundColor: 'rgba(212,175,106,0.15)', color: '#D4AF6A' }}
+                  >
+                    复制
+                  </button>
+                  <button 
+                    onClick={e => { e.stopPropagation(); deleteHistory(record.id) }}
+                    className="text-[10px] text-red-400/50 hover:text-red-400"
+                  >
+                    删除
+                  </button>
+                </div>
+              </div>
+              <div className="flex gap-1 flex-wrap">
+                {record.outputTypes?.map((type, i) => (
+                  <span key={i} className="text-[9px] px-1.5 py-0.5 rounded" 
+                        style={{ backgroundColor: 'rgba(212,175,106,0.1)', color: 'rgba(212,175,106,0.6)' }}>
+                    {type}
+                  </span>
+                ))}
+              </div>
+              {/* 内容预览 */}
+              <p className="text-white/25 text-[10px] mt-1.5 line-clamp-2">
+                {record.content?.substring(0, 100)}...
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  </div>
+)}
+
+📋 指令清单汇总
+
+表格
+指令	内容	优先级
+指令6	输出类型卡片加推荐角标+场景提示	🔴 P0
+指令7	生成等待时轮播焦总提示（双环动画+8条tips）	🔴 P0
+指令8	使用次数改为进度条+超额预警	🟡 P1
+指令9	抖音团购信息区域重构（二选一+手动填写）	🟡 P1
+指令10	输出区加「复制全部」+空状态引导	🟡 P1
+指令11	历史记录功能（localStorage存10条）	🟡 P1
+
+加上之前的指令1-5（表单分步、字段增删、类目级联修复），一共11条指令，覆盖了前端和Bot的全部优化。
+
+要不要我也把这些新指令跟之前的合并，重新打包一份完整的 Word 文档？
